@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>할 일</h1>
+
+    <form id="add-form" class="add-form" autocomplete="off">
+      <input id="title" name="title" placeholder="할 일을 입력하세요" maxlength="200" required>
+      <div class="add-row">
+        <label>마감일 <input id="due" name="due" type="date"></label>
+        <input id="tags" name="tags" placeholder="태그 (쉼표로 구분: 공부, 집)">
+        <button type="submit">추가</button>
+      </div>
+      <textarea id="memo" name="memo" rows="2" placeholder="메모 (선택)"></textarea>
+    </form>
+
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <nav class="filters" id="filters">
+      <button data-filter="all" class="active">전체</button>
+      <button data-filter="active">미완료</button>
+      <button data-filter="today">오늘 할 일</button>
+      <button data-filter="overdue">마감 지남</button>
+      <button data-filter="done">완료</button>
+    </nav>
+
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="검색 (할 일·메모)">
+    </div>
+    <div id="tag-filter" class="tag-filter"></div>
+
+    <ul id="list" class="list"></ul>
+    <p id="empty" class="empty" hidden>표시할 할 일이 없습니다.</p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
