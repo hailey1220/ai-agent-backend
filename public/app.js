@@ -1,4 +1,5 @@
-// 화면 코드: DB에 직접 접근하지 않고 백엔드 API(/api/...)만 호출한다.
+// 화면 코드: DB·Supabase에 직접 접근하지 않고 백엔드 API(/api/...)만 호출한다.
+// 로그인 토큰은 서버가 httpOnly 쿠키로 관리하므로 이 코드에서는 다루지 않는다.
 const state = { filter: 'all', tag: '', q: '' };
 
 const $ = (id) => document.getElementById(id);
@@ -6,7 +7,12 @@ const els = {
   form: $('add-form'), title: $('title'), due: $('due'), tags: $('tags'), memo: $('memo'),
   error: $('error'), filters: $('filters'), search: $('search'),
   tagFilter: $('tag-filter'), list: $('list'), empty: $('empty'),
+  authView: $('auth-view'), authForm: $('auth-form'), email: $('email'), password: $('password'),
+  authMessage: $('auth-message'), authError: $('auth-error'),
+  todoView: $('todo-view'), userBox: $('user-box'), userEmail: $('user-email'), logout: $('logout'),
 };
+
+class AuthRequired extends Error {}
 
 async function api(method, url, body) {
   const res = await fetch(url, {
@@ -16,13 +22,32 @@ async function api(method, url, body) {
   });
   if (res.status === 204) return null;
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && !url.startsWith('/api/auth/login')) throw new AuthRequired(data.error);
   if (!res.ok) throw new Error(data.error || `요청 실패 (${res.status})`);
   return data;
 }
 
-function showError(message) {
-  els.error.textContent = message || '';
-  els.error.hidden = !message;
+function showMessage(node, message) {
+  node.textContent = message || '';
+  node.hidden = !message;
+}
+const showError = (message) => showMessage(els.error, message);
+
+function showAuth(message) {
+  els.todoView.hidden = true;
+  els.userBox.hidden = true;
+  els.authView.hidden = false;
+  showMessage(els.authError, message);
+  els.email.focus();
+}
+
+function showTodos(user) {
+  els.authView.hidden = true;
+  els.todoView.hidden = false;
+  els.userBox.hidden = false;
+  els.userEmail.textContent = user.email;
+  showMessage(els.authMessage, '');
+  showMessage(els.authError, '');
 }
 
 function todayStr() {
@@ -85,7 +110,7 @@ async function load() {
   const tags = await api('GET', '/api/tags');
   renderTagFilter(tags);
 
-  const params = new URLSearchParams({ filter: state.filter });
+  const params = new URLSearchParams({ filter: state.filter, today: todayStr() });
   if (state.tag) params.set('tag', state.tag);
   if (state.q) params.set('q', state.q);
   const todos = await api('GET', `/api/todos?${params}`);
@@ -100,9 +125,37 @@ async function run(action) {
     await action();
     await load();
   } catch (err) {
-    showError(err.message);
+    if (err instanceof AuthRequired) showAuth(err.message);
+    else showError(err.message);
   }
 }
+
+els.authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mode = e.submitter?.dataset.mode === 'signup' ? 'signup' : 'login';
+  const body = { email: els.email.value, password: els.password.value };
+  showMessage(els.authMessage, '');
+  showMessage(els.authError, '');
+  try {
+    const data = await api('POST', `/api/auth/${mode}`, body);
+    if (data.needsConfirmation) {
+      showMessage(els.authMessage, '가입 확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 로그인하세요.');
+      return;
+    }
+    els.authForm.reset();
+    showTodos(data.user);
+    run(() => {});
+  } catch (err) {
+    showMessage(els.authError, err.message);
+  }
+});
+
+els.logout.addEventListener('click', async () => {
+  await api('POST', '/api/auth/logout').catch(() => {});
+  els.list.replaceChildren();
+  els.tagFilter.replaceChildren();
+  showAuth();
+});
 
 els.form.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -133,4 +186,7 @@ els.search.addEventListener('input', () => {
   searchTimer = setTimeout(() => { state.q = els.search.value.trim(); run(() => {}); }, 250);
 });
 
-run(() => {});
+// 시작: 이미 로그인돼 있으면 목록, 아니면 로그인 화면
+api('GET', '/api/auth/me')
+  .then(({ user }) => { showTodos(user); run(() => {}); })
+  .catch((err) => showAuth(err instanceof AuthRequired ? '' : err.message));

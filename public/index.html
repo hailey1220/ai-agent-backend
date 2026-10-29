@@ -8,8 +8,28 @@
 </head>
 <body>
   <main class="app">
-    <h1>할 일</h1>
+    <header class="top">
+      <h1>할 일</h1>
+      <div id="user-box" class="user-box" hidden>
+        <span id="user-email"></span>
+        <button id="logout" type="button">로그아웃</button>
+      </div>
+    </header>
 
+    <section id="auth-view" class="auth" hidden>
+      <form id="auth-form" class="auth-form">
+        <input id="email" type="email" placeholder="이메일" autocomplete="email" required>
+        <input id="password" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" minlength="6" required>
+        <div class="auth-buttons">
+          <button type="submit" data-mode="login" class="primary">로그인</button>
+          <button type="submit" data-mode="signup">회원가입</button>
+        </div>
+      </form>
+      <p id="auth-message" class="info" hidden></p>
+      <p id="auth-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="todo-view" hidden>
     <form id="add-form" class="add-form" autocomplete="off">
       <input id="title" name="title" placeholder="할 일을 입력하세요" maxlength="200" required>
       <div class="add-row">
@@ -37,6 +57,7 @@
 
     <ul id="list" class="list"></ul>
     <p id="empty" class="empty" hidden>표시할 할 일이 없습니다.</p>
+    </section>
   </main>
 
   <script src="app.js"></script>

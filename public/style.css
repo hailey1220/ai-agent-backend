@@ -53,6 +53,15 @@ button:hover { border-color: var(--accent); }
 textarea { resize: vertical; }
 
 .error { color: var(--danger); margin: 8px 0 0; }
+.info { color: var(--accent); margin: 8px 0 0; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.top h1 { margin: 0; }
+.user-box { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; }
+.auth-form { display: grid; gap: 8px; background: var(--card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); max-width: 380px; }
+.auth-buttons { display: flex; gap: 8px; }
+.auth-buttons button { flex: 1; }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 20px 0 10px; }
 .filters button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
